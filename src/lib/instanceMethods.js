@@ -1,5 +1,7 @@
 import getUuid from './getUuid'
-import injectComponent from './injectComponent'
+import { injectComponent } from './injectComponent'
+import MyToasts from '../components/MyToasts.vue'
+import { createApp, createVNode, defineComponent, h } from 'vue'
 
 // -- Main plugin reference
 // eslint-disable-next-line no-unused-vars
@@ -42,18 +44,55 @@ export const remove = (toastId) => {
 /**
  * Update the plugin config
  */
-export const updateConfig = (pluginOptions, component) => {
+export const updateConfig = (app, pluginOptions, component) => {
   // Remove present root element
   const rootEl = document.querySelector('#vue-my-toasts-root')
 
   // Delete current instance
   if (rootEl) {
+    console.log("Removing root element")
     rootEl.remove()
   }
 
   // Get component instance & reference
-  let componentData = injectComponent(pluginOptions, component)
+  // let componentData = injectComponent3(app, pluginOptions, component)
 
-  reference = componentData.reference
-  instance = componentData.instance
+  const customComponent = pluginOptions.component
+  console.log("Component: %o", customComponent)
+  console.log("App: %o", app)
+
+  const div = document.createElement("div")
+  div.id = 'vue-my-toasts-container'
+  div.style.left = 0
+  div.style.top = 0
+  div.style.width = '100%'
+  div.style.height = '100%'
+  div.style.position = 'fixed'
+  div.style.overflow = 'hidden'
+  div.style.zIndex = 999999
+  div.style.pointerEvents = 'none'
+  const definition = defineComponent({
+    extends: MyToasts, components: {
+      "MyToastsComponent": customComponent
+    }
+  })
+
+  console.log("Definition: %o", definition)
+
+  const toastInstance = createApp(definition, pluginOptions);
+  console.log("Toast Instance: %o", toastInstance)
+
+  // const div = createVNode(toastInstance)
+  document.body.appendChild(div);
+  console.log("Created element: %o", div)
+
+  const mounted = toastInstance.mount(div);
+  // document.body.appendChild(h(toastInstance));
+  console.log("Mounted: %o", mounted)
+
+  // toastInstance.unmount(div);
+  // document.body.removeChild(div);
+
+  reference = definition
+  instance = mounted
 }

@@ -1,4 +1,4 @@
-import Vue from 'vue';
+import { resolveComponent, openBlock, createBlock, createVNode, TransitionGroup, Fragment, renderList, mergeProps, createCommentVNode, withScopeId, defineComponent, createApp } from 'vue';
 
 /**
  * Get a toast uuid, useful when no `id` is provided by the user.
@@ -9,15 +9,7 @@ function getUuid () {
   return 'toast-' + Date.now() + '-' + Math.floor(Math.random() * 10)
 }
 
-var MyToasts = {
-render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return (_vm.toasts.length > 0)?_c('div',{class:['vue-my-toasts', _vm.position],style:({
-    '--vueMyToastsWidth': _vm.width,
-    '--vueMyToastsPadding': _vm.padding
-  }),attrs:{"id":"vue-my-toasts-root"}},[_c('transition-group',{class:['vue-my-toasts-wrapper', _vm.position],attrs:{"duration":"350","name":_vm.position.includes('middle') ? 'fade-vertical' : 'fade-horizontal',"tag":"ul"}},_vm._l((_vm.toasts),function(toast,index){return _c('my-toasts-component',_vm._b({key:toast.id,class:[
-        _vm.position.includes('middle') ? 'fade-vertical' : 'fade-horizontal',
-        _vm.position
-      ],attrs:{"index":index,"position":_vm.position},on:{"remove":function($event){return _vm.remove(toast.id)}}},'my-toasts-component',toast,false))}),1)],1):_vm._e()},
-staticRenderFns: [],
+var script = {
   name: 'MyToasts',
 
   props: {
@@ -72,32 +64,52 @@ staticRenderFns: [],
   }
 };
 
-/**
- * Register toast handler component to root
- * @param pluginOptions
- * @returns {{reference: Vue | object | Record<never, any>, instance: Vue}}
- */
-function injectComponent (pluginOptions, userComponent) {
-  // Inject user provided component
-  Vue.component('my-toasts-component', userComponent);
+var _withId = /*#__PURE__*/withScopeId("data-v-2c7e9c28");
 
-  // Create toasts layer instance
-  var vueInstance = new Vue({
-    render: function (h) { return h(MyToasts, { props: pluginOptions }); }
-  });
+var render = /*#__PURE__*/_withId(function (_ctx, _cache, $props, $setup, $data, $options) {
+  var _component_my_toasts_component = resolveComponent("my-toasts-component");
 
-  // Create component
-  var component = vueInstance.$mount();
+  return (_ctx.toasts.length > 0)
+    ? (openBlock(), createBlock("div", {
+        key: 0,
+        ref: "root",
+        id: "vue-my-toasts-root",
+        class: ['vue-my-toasts', $props.position],
+        style: {
+      '--vueMyToastsWidth': $props.width,
+      '--vueMyToastsPadding': $props.padding
+    }
+      }, [
+        createVNode(TransitionGroup, {
+          duration: "350",
+          name: $props.position.includes('middle') ? 'fade-vertical' : 'fade-horizontal',
+          tag: "ul",
+          class: ['vue-my-toasts-wrapper', $props.position]
+        }, {
+          default: _withId(function () { return [
+            (openBlock(true), createBlock(Fragment, null, renderList(_ctx.toasts, function (toast, index) {
+              return (openBlock(), createBlock(_component_my_toasts_component, mergeProps({
+                class: [
+          $props.position.includes('middle') ? 'fade-vertical' : 'fade-horizontal',
+          $props.position
+        ],
+                key: toast.id,
+                index: index,
+                position: $props.position
+              }, toast, {
+                onRemove: function ($event) { return ($options.remove(toast.id)); }
+              }), null, 16 /* FULL_PROPS */, ["class", "index", "position", "onRemove"]))
+            }), 128 /* KEYED_FRAGMENT */))
+          ]; }),
+          _: 1 /* STABLE */
+        }, 8 /* PROPS */, ["name", "class"])
+      ], 6 /* CLASS, STYLE */))
+    : createCommentVNode("v-if", true)
+});
 
-  // Append component to body
-  document.body.appendChild(component.$el);
-
-  // Return created instances
-  return {
-    reference: component,
-    instance: component.$children[0]
-  }
-}
+script.render = render;
+script.__scopeId = "data-v-2c7e9c28";
+script.__file = "src/components/MyToasts.vue";
 
 // -- Main plugin instance
 var instance = null;
@@ -137,18 +149,52 @@ var remove = function (toastId) {
 /**
  * Update the plugin config
  */
-var updateConfig = function (pluginOptions, component) {
+var updateConfig = function (app, pluginOptions, component) {
   // Remove present root element
   var rootEl = document.querySelector('#vue-my-toasts-root');
 
   // Delete current instance
   if (rootEl) {
+    console.log("Removing root element");
     rootEl.remove();
   }
 
   // Get component instance & reference
-  var componentData = injectComponent(pluginOptions, component);
-  instance = componentData.instance;
+  // let componentData = injectComponent3(app, pluginOptions, component)
+
+  var customComponent = pluginOptions.component;
+  console.log("Component: %o", customComponent);
+  console.log("App: %o", app);
+
+  var div = document.createElement("div");
+  div.id = 'vue-my-toasts-container';
+  div.style.left = 0;
+  div.style.top = 0;
+  div.style.width = '100%';
+  div.style.height = '100%';
+  div.style.position = 'fixed';
+  div.style.overflow = 'hidden';
+  div.style.zIndex = 999999;
+  div.style.pointerEvents = 'none';
+  var definition = defineComponent({
+    extends: script, components: {
+      "MyToastsComponent": customComponent
+    }
+  });
+
+  console.log("Definition: %o", definition);
+
+  var toastInstance = createApp(definition, pluginOptions);
+  console.log("Toast Instance: %o", toastInstance);
+
+  // const div = createVNode(toastInstance)
+  document.body.appendChild(div);
+  console.log("Created element: %o", div);
+
+  var mounted = toastInstance.mount(div);
+  // document.body.appendChild(h(toastInstance));
+  console.log("Mounted: %o", mounted);
+  instance = mounted;
 };
 
 /**
@@ -191,51 +237,42 @@ var helperMethods = {
 // ------------------------------------------------------------------------------
 // VARIABLES
 // ------------------------------------------------------------------------------
-var version = '1.0.5';
+var version = '1.1.0';
 var pluginOptions = {
-  width: '400px', // CSS variable
-  padding: '1rem', // CSS variable
+  width: '400px',          // CSS variable
+  padding: '1rem',         // CSS variable
   position: 'bottom-right' // top-left, top-right, bottom-left, bottom-right, top-middle, bottom-middle
 };
 
 // ------------------------------------------------------------------------------
 // FUNCTIONS
 // ------------------------------------------------------------------------------
-/**
- * Install the plugin into Vue
- *
- * @param Vue
- * @param component
- * @param options
- */
-var install = function (Vue, ref) {
-  var component = ref.component;
-  var options = ref.options;
 
+var install = function (app, options) {
   // Overriding default config by user provided one
   pluginOptions = Object.assign({}, pluginOptions,
     options);
 
+  // import {defineComponent,createApp} from 'vue'
+
+  // const component = defineComponent({
+  //   extends: MyToasts
+  // })
+
+  // const div = document.createElement('div');
+  // this.$refs.container.appendChild(div);
+  // createApp(buttonView ).mount(div)
+
   // Initialize config
-  updateConfig(pluginOptions, component);
+  updateConfig(app, pluginOptions);
 
-  // Inject into vue prototype
-  Vue.prototype.$toasts = Object.assign({}, {push: push,
+  var toasts = Object.assign({}, {push: push,
     remove: remove},
-    helperMethods,
-    /**
-     * Update the used toasts config
-     *
-     * @param newOptions
-     */
-    {updateConfig: function (newOptions, userComponent) {
-      if ( userComponent === void 0 ) userComponent = component;
+    helperMethods);
 
-      pluginOptions = Object.assign({}, pluginOptions,
-        newOptions);
-
-      updateConfig(pluginOptions, userComponent);
-    }});
+  // Inject into app instance
+  app.config.globalProperties.$toasts = toasts;
+  app.provide("$toasts", toasts);
 };
 
 // ------------------------------------------------------------------------------
@@ -254,6 +291,13 @@ var plugin = {
   install: install,
   version: version
 };
+
+// export default {
+//   install: (app, options) => {
+//     app.config.globalProperties.$toasts = MyToasts
+//     app.provide("$toasts", MyToasts)
+//   }
+// }
 
 /**
  * Try to auto-inject if Vue is loaded as a script tag.

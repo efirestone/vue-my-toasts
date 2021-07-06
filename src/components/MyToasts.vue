@@ -1,5 +1,6 @@
 <template>
   <div
+    ref="root"
     id="vue-my-toasts-root"
     v-if="toasts.length > 0"
     :class="['vue-my-toasts', position]"

@@ -1,12 +1,12 @@
 const mkdirp = require('mkdirp')
 const rollup = require('rollup').rollup
 const buble = require('rollup-plugin-buble')
-const replace = require('rollup-plugin-replace')
+const replace = require('@rollup/plugin-replace')
 const cjs = require('rollup-plugin-commonjs')
 const resolve = require('rollup-plugin-node-resolve')
 const peerDepsExternal = require('rollup-plugin-peer-deps-external')
 const { terser } = require('rollup-plugin-terser')
-const vue = require('rollup-plugin-vue2')
+const vue = require('rollup-plugin-vue')
 const css = require('rollup-plugin-css-only')
 
 // Make sure dist dir exists
@@ -28,7 +28,8 @@ function rollupBundle({ env, plugins = [] }) {
       replace(
         Object.assign(
           {
-            __VERSION__: version
+            __VERSION__: version,
+            preventAssignment: true
           },
           env
         )

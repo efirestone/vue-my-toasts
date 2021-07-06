@@ -1,58 +1,69 @@
 // ------------------------------------------------------------------------------
 // IMPORTS
 // ------------------------------------------------------------------------------
-import { push, remove, updateConfig } from './lib/instanceMethods'
+import { defineComponent } from 'vue'
+import { instance, push, reference, remove, updateConfig } from './lib/instanceMethods'
 import helperMethods from './lib/helperMethods'
+import { injectComponent } from "./lib/injectComponent";
+import MyToasts from "./components/MyToasts.vue";
 
 // ------------------------------------------------------------------------------
 // VARIABLES
 // ------------------------------------------------------------------------------
 const version = '__VERSION__'
 let pluginOptions = {
-  width: '400px', // CSS variable
-  padding: '1rem', // CSS variable
+  width: '400px',          // CSS variable
+  padding: '1rem',         // CSS variable
   position: 'bottom-right' // top-left, top-right, bottom-left, bottom-right, top-middle, bottom-middle
 }
 
 // ------------------------------------------------------------------------------
 // FUNCTIONS
 // ------------------------------------------------------------------------------
-/**
- * Install the plugin into Vue
- *
- * @param Vue
- * @param component
- * @param options
- */
-const install = (Vue, { component, options }) => {
+
+const install = (app, options) => {
   // Overriding default config by user provided one
   pluginOptions = {
     ...pluginOptions,
     ...options
   }
 
-  // Initialize config
-  updateConfig(pluginOptions, component)
+  // import {defineComponent,createApp} from 'vue'
 
-  // Inject into vue prototype
-  Vue.prototype.$toasts = {
+  // const component = defineComponent({
+  //   extends: MyToasts
+  // })
+
+  // const div = document.createElement('div');
+  // this.$refs.container.appendChild(div);
+  // createApp(buttonView ).mount(div)
+
+  // Initialize config
+  updateConfig(app, pluginOptions, MyToasts)
+
+  const toasts = {
     push,
     remove,
     ...helperMethods,
+
     /**
      * Update the used toasts config
      *
      * @param newOptions
      */
-    updateConfig: (newOptions, userComponent = component) => {
-      pluginOptions = {
-        ...pluginOptions,
-        ...newOptions
-      }
-
-      updateConfig(pluginOptions, userComponent)
-    }
+    // updateConfig: (newOptions, userComponent = component) => {
+    //   pluginOptions = {
+    //     ...pluginOptions,
+    //     ...newOptions
+    //   }
+    //
+    //   updateConfig(pluginOptions, userComponent)
+    // }
   }
+
+  // Inject into app instance
+  app.config.globalProperties.$toasts = toasts
+  app.provide("$toasts", toasts)
 }
 
 // ------------------------------------------------------------------------------
@@ -73,6 +84,13 @@ const plugin = {
 }
 
 export default plugin
+
+// export default {
+//   install: (app, options) => {
+//     app.config.globalProperties.$toasts = MyToasts
+//     app.provide("$toasts", MyToasts)
+//   }
+// }
 
 /**
  * Try to auto-inject if Vue is loaded as a script tag.
